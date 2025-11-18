@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/envie_search_bar.dart';
 import '../../establishments/widgets/establishment_card.dart';
-import '../../../core/providers/search_provider.dart';
 import '../../../core/services/geolocation_service.dart';
 import '../../../data/repositories/establishment_repository.dart';
 import '../../../data/models/establishment.dart';

@@ -8,7 +8,6 @@ import '../../../data/models/professional.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../../core/services/favorites_service.dart';
-import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/favorites_provider.dart';
 import 'package:go_router/go_router.dart';
 

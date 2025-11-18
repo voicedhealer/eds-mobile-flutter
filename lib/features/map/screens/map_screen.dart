@@ -5,7 +5,6 @@ import '../../../core/providers/search_provider.dart';
 import '../../../core/services/geolocation_service.dart';
 import '../../../data/models/establishment.dart';
 import '../widgets/map_component.dart';
-import '../../establishments/screens/establishment_detail_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class MapScreen extends ConsumerStatefulWidget {

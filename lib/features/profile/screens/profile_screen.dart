@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/services/supabase_auth_service.dart';
 
@@ -26,7 +27,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // Naviguer vers l'écran de connexion
+                      context.push('/login');
                     },
                     child: const Text('Se connecter'),
                   ),
@@ -35,24 +36,25 @@ class ProfileScreen extends ConsumerWidget {
             );
           }
 
+          final appUser = user;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               CircleAvatar(
                 radius: 50,
-                backgroundImage: user.avatar != null
-                    ? NetworkImage(user.avatar!)
+                backgroundImage: appUser.avatar != null
+                    ? NetworkImage(appUser.avatar!)
                     : null,
-                child: user.avatar == null
+                child: appUser.avatar == null
                     ? Text(
-                        user.firstName?.substring(0, 1).toUpperCase() ?? 'U',
+                        appUser.firstName?.substring(0, 1).toUpperCase() ?? 'U',
                         style: const TextStyle(fontSize: 32),
                       )
                     : null,
               ),
               const SizedBox(height: 16),
               Text(
-                user.name ?? user.email,
+                appUser.name ?? appUser.email,
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -60,13 +62,13 @@ class ProfileScreen extends ConsumerWidget {
               ListTile(
                 leading: const Icon(Icons.email),
                 title: const Text('Email'),
-                subtitle: Text(user.email),
+                subtitle: Text(appUser.email),
               ),
-              if (user.favoriteCity != null)
+              if (appUser.favoriteCity != null)
                 ListTile(
                   leading: const Icon(Icons.location_city),
                   title: const Text('Ville favorite'),
-                  subtitle: Text(user.favoriteCity!),
+                  subtitle: Text(appUser.favoriteCity!),
                 ),
               const Divider(),
               ListTile(
