@@ -1,0 +1,20 @@
+<!-- ios/Runner/Info.plist -->
+<!-- 
+  Ce fichier est un exemple.
+  Ajoutez ces clés dans votre Info.plist réel.
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Permissions de localisation -->
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>Nous avons besoin de votre localisation pour vous montrer les établissements près de chez vous</string>
+  
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+  <string>Nous avons besoin de votre localisation pour vous montrer les établissements près de chez vous</string>
+  
+  <!-- Autres configurations Flutter standard -->
+</dict>
+</plist>
+
