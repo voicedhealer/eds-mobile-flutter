@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../data/models/event.dart';
-import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/date_utils.dart' as app_date_utils;
 
 class EventCard extends StatelessWidget {
   final Event event;
@@ -62,7 +62,7 @@ class EventCard extends StatelessWidget {
                       const Icon(Icons.calendar_today, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        DateUtils.formatDateTime(event.startDate),
+                        app_date_utils.DateUtils.formatDateTime(event.startDate),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

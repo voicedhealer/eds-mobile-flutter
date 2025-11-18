@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../data/models/establishment.dart';
+import '../../../data/models/professional.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../../core/services/favorites_service.dart';

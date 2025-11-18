@@ -1,10 +1,10 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../data/models/user.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import '../../data/models/user.dart' as app_models;
 
 class SupabaseAuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<User?> signUp({
+  Future<app_models.User?> signUp({
     required String email,
     required String password,
     String? firstName,
@@ -23,10 +23,10 @@ class SupabaseAuthService {
     );
 
     if (response.user == null) return null;
-    return User.fromJson(response.user!.toJson());
+    return app_models.User.fromJson(response.user!.toJson());
   }
 
-  Future<User?> signIn({
+  Future<app_models.User?> signIn({
     required String email,
     required String password,
   }) async {
@@ -36,17 +36,17 @@ class SupabaseAuthService {
     );
 
     if (response.user == null) return null;
-    return User.fromJson(response.user!.toJson());
+    return app_models.User.fromJson(response.user!.toJson());
   }
 
   Future<void> signOut() async {
     await _supabase.auth.signOut();
   }
 
-  User? get currentUser {
+  app_models.User? get currentUser {
     final session = _supabase.auth.currentSession;
     if (session?.user == null) return null;
-    return User.fromJson(session!.user.toJson());
+    return app_models.User.fromJson(session!.user.toJson());
   }
 }
 

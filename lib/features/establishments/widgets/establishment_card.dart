@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../data/models/establishment.dart';
+import '../../../data/models/professional.dart';
 
 class EstablishmentCard extends StatelessWidget {
   final Establishment establishment;
