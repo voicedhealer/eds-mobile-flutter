@@ -29,6 +29,7 @@ class FavoritesScreen extends ConsumerWidget {
                 padding: const EdgeInsets.only(bottom: 16),
                 child: EstablishmentCard(
                   establishment: favorites[index],
+                  onTap: () => context.push('/establishment/${favorites[index].slug}'),
                 ),
               );
             },

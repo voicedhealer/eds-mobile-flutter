@@ -4,10 +4,12 @@ import '../../../data/models/establishment.dart';
 
 class EstablishmentCard extends StatelessWidget {
   final Establishment establishment;
+  final VoidCallback? onTap;
 
   const EstablishmentCard({
     super.key,
     required this.establishment,
+    this.onTap,
   });
 
   @override
@@ -17,7 +19,10 @@ class EstablishmentCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image avec badge premium
@@ -102,6 +107,7 @@ class EstablishmentCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

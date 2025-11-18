@@ -1,17 +1,75 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../data/models/establishment.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/error_handler.dart';
+import '../../../core/services/favorites_service.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/favorites_provider.dart';
 import 'package:go_router/go_router.dart';
 
-class EstablishmentDetailScreen extends StatelessWidget {
+class EstablishmentDetailScreen extends ConsumerStatefulWidget {
   final Establishment establishment;
 
   const EstablishmentDetailScreen({
     super.key,
     required this.establishment,
   });
+
+  @override
+  ConsumerState<EstablishmentDetailScreen> createState() => _EstablishmentDetailScreenState();
+}
+
+class _EstablishmentDetailScreenState extends ConsumerState<EstablishmentDetailScreen> {
+  final FavoritesService _favoritesService = FavoritesService();
+  bool? _isFavorite;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFavorite();
+  }
+
+  Future<void> _checkFavorite() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      final isFav = await _favoritesService.isFavorite(widget.establishment.id, user.id);
+      if (mounted) {
+        setState(() => _isFavorite = isFav);
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) {
+      if (mounted) {
+        ErrorHandler.showInfo(context, 'Connectez-vous pour ajouter aux favoris');
+        context.push('/login');
+      }
+      return;
+    }
+
+    try {
+      await _favoritesService.toggleFavorite(widget.establishment.id, user.id);
+      await _checkFavorite();
+      ref.invalidate(favoritesProvider);
+      
+      if (mounted) {
+        ErrorHandler.showSuccess(
+          context,
+          _isFavorite == true ? 'Retiré des favoris' : 'Ajouté aux favoris',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showError(context, e);
+      }
+    }
+  }
 
   Future<void> _launchUrl(String? url) async {
     if (url == null) return;
@@ -29,10 +87,20 @@ class EstablishmentDetailScreen extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _isFavorite == true ? Icons.favorite : Icons.favorite_border,
+                  color: _isFavorite == true ? Colors.red : Colors.white,
+                ),
+                onPressed: _toggleFavorite,
+                tooltip: _isFavorite == true ? 'Retirer des favoris' : 'Ajouter aux favoris',
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
-              background: establishment.imageUrl != null
+              background: widget.establishment.imageUrl != null
                   ? CachedNetworkImage(
-                      imageUrl: establishment.imageUrl!,
+                      imageUrl: widget.establishment.imageUrl!,
                       fit: BoxFit.cover,
                     )
                   : Container(
@@ -53,7 +121,7 @@ class EstablishmentDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            establishment.name,
+                            widget.establishment.name,
                             style: Theme.of(context).textTheme.headlineMedium,
                           ),
                           const SizedBox(height: 4),
@@ -62,7 +130,7 @@ class EstablishmentDetailScreen extends StatelessWidget {
                               const Icon(Icons.location_on, size: 16),
                               const SizedBox(width: 4),
                               Text(
-                                '${establishment.address}${establishment.city != null ? ', ${establishment.city}' : ''}',
+                                '${widget.establishment.address}${widget.establishment.city != null ? ', ${widget.establishment.city}' : ''}',
                                 style: Theme.of(context).textTheme.bodyMedium,
                               ),
                             ],
@@ -70,7 +138,7 @@ class EstablishmentDetailScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (establishment.subscription == SubscriptionPlan.premium)
+                    if (widget.establishment.subscription == SubscriptionPlan.premium)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -96,25 +164,25 @@ class EstablishmentDetailScreen extends StatelessWidget {
                       ),
                   ],
                 ),
-                if (establishment.avgRating != null) ...[
+                if (widget.establishment.avgRating != null) ...[
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       const Icon(Icons.star, color: Colors.amber, size: 20),
                       const SizedBox(width: 4),
                       Text(
-                        establishment.avgRating!.toStringAsFixed(1),
+                        widget.establishment.avgRating!.toStringAsFixed(1),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '(${establishment.totalComments} avis)',
+                        '(${widget.establishment.totalComments} avis)',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
                 ],
-                if (establishment.description != null) ...[
+                if (widget.establishment.description != null) ...[
                   const SizedBox(height: 16),
                   Text(
                     'Description',
@@ -122,12 +190,12 @@ class EstablishmentDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    establishment.description!,
+                    widget.establishment.description!,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
-                if (establishment.prixMoyen != null ||
-                    establishment.priceMin != null) ...[
+                if (widget.establishment.prixMoyen != null ||
+                    widget.establishment.priceMin != null) ...[
                   const SizedBox(height: 16),
                   Text(
                     'Prix',
@@ -135,50 +203,50 @@ class EstablishmentDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    establishment.priceMin != null && establishment.priceMax != null
+                    widget.establishment.priceMin != null && widget.establishment.priceMax != null
                         ? Formatters.formatPriceRange(
-                            establishment.priceMin, establishment.priceMax)
-                        : Formatters.formatPrice(establishment.prixMoyen),
+                            widget.establishment.priceMin, widget.establishment.priceMax)
+                        : Formatters.formatPrice(widget.establishment.prixMoyen),
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ],
-                if (establishment.phone != null ||
-                    establishment.email != null ||
-                    establishment.website != null) ...[
+                if (widget.establishment.phone != null ||
+                    widget.establishment.email != null ||
+                    widget.establishment.website != null) ...[
                   const SizedBox(height: 16),
                   Text(
                     'Contact',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  if (establishment.phone != null)
+                  if (widget.establishment.phone != null)
                     ListTile(
                       leading: const Icon(Icons.phone),
                       title: const Text('Téléphone'),
-                      subtitle: Text(establishment.phone!),
-                      onTap: () => _launchUrl('tel:${establishment.phone}'),
+                      subtitle: Text(widget.establishment.phone!),
+                      onTap: () => _launchUrl('tel:${widget.establishment.phone}'),
                     ),
-                  if (establishment.email != null)
+                  if (widget.establishment.email != null)
                     ListTile(
                       leading: const Icon(Icons.email),
                       title: const Text('Email'),
-                      subtitle: Text(establishment.email!),
-                      onTap: () => _launchUrl('mailto:${establishment.email}'),
+                      subtitle: Text(widget.establishment.email!),
+                      onTap: () => _launchUrl('mailto:${widget.establishment.email}'),
                     ),
-                  if (establishment.website != null)
+                  if (widget.establishment.website != null)
                     ListTile(
                       leading: const Icon(Icons.language),
                       title: const Text('Site web'),
-                      subtitle: Text(establishment.website!),
-                      onTap: () => _launchUrl(establishment.website),
+                      subtitle: Text(widget.establishment.website!),
+                      onTap: () => _launchUrl(widget.establishment.website),
                     ),
                 ],
-                if (establishment.latitude != null &&
-                    establishment.longitude != null) ...[
+                if (widget.establishment.latitude != null &&
+                    widget.establishment.longitude != null) ...[
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () {
-                      context.push('/map?envie=${establishment.name}');
+                      context.push('/map?envie=${Uri.encodeComponent(widget.establishment.name)}');
                     },
                     icon: const Icon(Icons.map),
                     label: const Text('Voir sur la carte'),
