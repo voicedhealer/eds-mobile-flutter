@@ -24,6 +24,7 @@ final popularEstablishmentsProvider = FutureProvider<List<Establishment>>((ref) 
       print('⚠️ Erreur géolocalisation: $e');
     }
     
+    // Si une ville est détectée, chercher les établissements de cette ville
     if (city != null && city.isNotEmpty) {
       try {
         final establishments = await repository.getByCity(city)
@@ -31,15 +32,25 @@ final popularEstablishmentsProvider = FutureProvider<List<Establishment>>((ref) 
           print('⏱️ Timeout lors de la récupération des établissements');
           return [];
         });
-        return establishments;
+        
+        // Si on trouve des établissements dans la ville, les retourner
+        if (establishments.isNotEmpty) {
+          return establishments;
+        }
+        
+        // Sinon, fallback sur les établissements populaires
+        print('ℹ️ Aucun établissement trouvé à $city, chargement des établissements populaires');
+        return await repository.getPopular(limit: 20);
       } catch (e) {
         print('❌ Erreur lors de la récupération: $e');
-        return [];
+        // En cas d'erreur, essayer quand même de charger les populaires
+        return await repository.getPopular(limit: 20);
       }
     } else {
-      print('ℹ️ Aucune ville détectée, retour d\'une liste vide');
+      // Si pas de ville détectée, charger les établissements populaires
+      print('ℹ️ Aucune ville détectée, chargement des établissements populaires');
+      return await repository.getPopular(limit: 20);
     }
-    return [];
   } catch (e) {
     print('Error in popularEstablishmentsProvider: $e');
     return [];

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'professional.dart';
 
 class Establishment {
@@ -83,6 +84,21 @@ class Establishment {
     required this.updatedAt,
   });
 
+  /// Helper pour parser les champs JSON qui peuvent être des strings ou des Maps
+  static Map<String, dynamic>? _parseJsonField(dynamic field) {
+    if (field == null) return null;
+    if (field is Map<String, dynamic>) return field;
+    if (field is String) {
+      try {
+        return jsonDecode(field) as Map<String, dynamic>?;
+      } catch (e) {
+        print('⚠️ Erreur lors du parsing JSON: $e');
+        return null;
+      }
+    }
+    return null;
+  }
+
   factory Establishment.fromJson(Map<String, dynamic> json) {
     return Establishment(
       id: json['id'],
@@ -100,13 +116,13 @@ class Establishment {
       website: json['website'],
       instagram: json['instagram'],
       facebook: json['facebook'],
-      activities: json['activities'],
+      activities: _parseJsonField(json['activities']),
       specialites: json['specialites'] ?? '',
       motsClesRecherche: json['mots_cles_recherche'],
-      services: json['services'],
-      ambiance: json['ambiance'],
-      paymentMethods: json['payment_methods'],
-      horairesOuverture: json['horaires_ouverture'],
+      services: _parseJsonField(json['services']),
+      ambiance: _parseJsonField(json['ambiance']),
+      paymentMethods: _parseJsonField(json['payment_methods']),
+      horairesOuverture: _parseJsonField(json['horaires_ouverture']),
       prixMoyen: json['prix_moyen']?.toDouble(),
       capaciteMax: json['capacite_max'],
       accessibilite: json['accessibilite'] ?? false,

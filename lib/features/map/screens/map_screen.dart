@@ -24,7 +24,6 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   final GeolocationService _geolocationService = GeolocationService();
   LatLng? _userLocation;
-  List<Establishment> _establishments = [];
 
   @override
   void initState() {
@@ -47,8 +46,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Establishment> establishments = [];
-
     if (widget.envie != null && widget.ville != null && widget.ville!.isNotEmpty) {
       final searchParams = SearchParams(
         envie: widget.envie!,
@@ -57,44 +54,127 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
       final resultsAsync = ref.watch(searchResultsProvider(searchParams));
       
-      resultsAsync.when(
-        data: (data) {
-          establishments = data;
-        },
-        loading: () {},
-        error: (_, __) {},
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.envie != null
-            ? 'Carte - ${widget.envie}'
-            : 'Carte des établissements'),
-      ),
-      body: Stack(
-        children: [
-          MapComponent(
-            establishments: establishments,
-            initialPosition: _userLocation,
-            onMarkerTap: _handleMarkerTap,
-          ),
-          if (widget.envie != null)
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Text(
-                    '${establishments.length} établissement${establishments.length > 1 ? 's' : ''} trouvé${establishments.length > 1 ? 's' : ''}',
-                    style: Theme.of(context).textTheme.bodyMedium,
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Carte - ${widget.envie}'),
+        ),
+        body: resultsAsync.when(
+          data: (establishments) => Stack(
+            children: [
+              MapComponent(
+                establishments: establishments,
+                initialPosition: _userLocation,
+                onMarkerTap: _handleMarkerTap,
+              ),
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      '${establishments.length} établissement${establishments.length > 1 ? 's' : ''} trouvé${establishments.length > 1 ? 's' : ''}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+            ],
+          ),
+          loading: () => Stack(
+            children: [
+              MapComponent(
+                establishments: [],
+                initialPosition: _userLocation,
+                onMarkerTap: _handleMarkerTap,
+              ),
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ],
+          ),
+          error: (error, stack) {
+            // Afficher un message d'erreur plus explicite
+            String errorMessage = 'Une erreur est survenue';
+            final errorString = error.toString();
+            
+            if (errorString.contains('NotInitializedError')) {
+              errorMessage = 'Supabase n\'est pas initialisé.\n\nVérifiez que votre fichier .env contient:\n- SUPABASE_URL\n- SUPABASE_ANON_KEY';
+            } else if (errorString.contains('RAILWAY_API_URL') || errorString.contains('Railway')) {
+              errorMessage = 'L\'API Railway n\'est pas configurée.\n\nVérifiez que votre fichier .env contient:\n- RAILWAY_API_URL';
+            } else {
+              errorMessage = errorString.replaceAll('Instance of \'', '').replaceAll('\'', '');
+            }
+            
+            return Stack(
+              children: [
+                MapComponent(
+                  establishments: [],
+                  initialPosition: _userLocation,
+                  onMarkerTap: _handleMarkerTap,
+                ),
+                Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Erreur',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          errorMessage,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            ref.invalidate(searchResultsProvider(searchParams));
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Réessayer'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    }
+
+    // Si pas de recherche, afficher juste la carte vide
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Carte des établissements'),
+      ),
+      body: MapComponent(
+        establishments: [],
+        initialPosition: _userLocation,
+        onMarkerTap: _handleMarkerTap,
       ),
     );
   }

@@ -57,4 +57,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  
+  # Assets pour inclure le fichier .env
+  assets:
+    - .env
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -35,17 +36,47 @@ void main() async {
   };
   
   // Charger les variables d'environnement (si le fichier existe)
+  print('📦 Chargement du fichier .env...');
+  bool envLoaded = false;
+  
+  // Essayer d'abord de charger depuis les assets (nécessaire pour iOS)
   try {
-    await dotenv.load(fileName: '.env');
+    print('🔄 Tentative 1: Chargement depuis les assets...');
+    await dotenv.load();
+    print('✅ Fichier .env chargé depuis les assets');
+    print('   Variables disponibles: ${dotenv.env.keys.length}');
+    envLoaded = true;
   } catch (e) {
-    print('Warning: .env file not found. Using default values.');
+    print('⚠️ Échec du chargement depuis les assets: $e');
+  }
+  
+  // Si ça échoue, essayer depuis le système de fichiers (pour debug/development)
+  if (!envLoaded) {
+    try {
+      print('🔄 Tentative 2: Chargement depuis le système de fichiers...');
+      await dotenv.load(fileName: '.env');
+      print('✅ Fichier .env chargé depuis le système de fichiers');
+      print('   Variables disponibles: ${dotenv.env.keys.length}');
+      envLoaded = true;
+    } catch (e) {
+      print('⚠️ Warning: .env file not found. Using default values.');
+      print('   Erreur: $e');
+    }
+  }
+  
+  if (!envLoaded) {
+    print('❌ Impossible de charger le fichier .env');
+    print('   Vérifiez que le fichier .env existe et est déclaré dans pubspec.yaml');
   }
   
   // Initialiser Supabase
+  print('🔧 Appel de initSupabase()...');
   try {
     await initSupabase();
-  } catch (e) {
-    print('Error initializing Supabase: $e');
+    print('✅ initSupabase() terminé');
+  } catch (e, stackTrace) {
+    print('❌ Error initializing Supabase: $e');
+    print('   Stack: $stackTrace');
   }
   
   runApp(
