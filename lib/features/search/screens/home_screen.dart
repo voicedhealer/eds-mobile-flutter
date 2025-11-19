@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/envie_search_bar.dart';
 import '../../establishments/widgets/establishment_card.dart';
 import '../../../core/services/geolocation_service.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../data/repositories/establishment_repository.dart';
 import '../../../data/models/establishment.dart';
 
@@ -107,12 +108,59 @@ class HomeScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const SizedBox(height: 20),
-                    Text(
-                      'Envie2Sortir',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    // En-tête avec titre et bouton connexion
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(width: 48), // Espace pour équilibrer
+                        Expanded(
+                          child: Text(
+                            'Envie2Sortir',
+                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                              // Utilisez 'LemonTuesday' une fois le fichier de police ajouté
+                              // fontFamily: 'LemonTuesday',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        // Bouton connexion/inscription
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final isAuthenticated = ref.watch(isAuthenticatedProvider);
+                            if (isAuthenticated) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    context.push('/profile');
+                                  },
+                                  tooltip: 'Mon profil',
+                                ),
+                              );
+                            }
+                            // Si non connecté, afficher une icône de connexion
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.login,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  context.push('/login');
+                                },
+                                tooltip: 'Se connecter',
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
                     Padding(
@@ -138,11 +186,6 @@ class HomeScreen extends ConsumerWidget {
                             onTap: () => context.push('/events'),
                           ),
                           _QuickActionButton(
-                            icon: Icons.favorite,
-                            label: 'Favoris',
-                            onTap: () => context.push('/favorites'),
-                          ),
-                          _QuickActionButton(
                             icon: Icons.local_offer,
                             label: 'Bons plans',
                             onTap: () {
@@ -154,6 +197,11 @@ class HomeScreen extends ConsumerWidget {
                                 ),
                               );
                             },
+                          ),
+                          _QuickActionButton(
+                            icon: Icons.favorite,
+                            label: 'Favoris',
+                            onTap: () => context.push('/favorites'),
                           ),
                         ],
                       ),

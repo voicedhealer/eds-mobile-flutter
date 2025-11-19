@@ -1,9 +1,9 @@
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase_lib;
 import '../../data/models/user.dart' as app_models;
 import '../../config/supabase_config.dart';
 
 class SupabaseAuthService {
-  SupabaseClient? get _supabase => supabase;
+  supabase_lib.SupabaseClient? get _supabase => supabase;
 
   Future<app_models.User?> signUp({
     required String firstName,
@@ -75,17 +75,12 @@ class SupabaseAuthService {
   }
 
   // Stream de l'état d'authentification
-  Stream<AuthState> get authStateChanges {
+  Stream<supabase_lib.AuthChangeEvent> get authStateChanges {
     if (_supabase == null) {
-      return Stream.value(AuthState.unauthenticated);
+      return Stream.value(supabase_lib.AuthChangeEvent.signedOut);
     }
     
-    return _supabase!.auth.onAuthStateChange.map((event) {
-      if (event.session?.user == null) {
-        return AuthState.unauthenticated;
-      }
-      return AuthState.authenticated;
-    });
+    return _supabase!.auth.onAuthStateChange.map((event) => event.event);
   }
 
   // Récupérer les données utilisateur depuis la table users
@@ -109,17 +104,21 @@ class SupabaseAuthService {
 
   // Créer un User depuis les données auth (fallback)
   app_models.User _createUserFromAuth(
-    User authUser, [
+    supabase_lib.User authUser, [
     String? firstName,
     String? lastName,
   ]) {
-    final metadata = authUser.userMetadata;
+    final metadata = authUser.userMetadata ?? {};
     final now = DateTime.now();
     
     // Parser les dates depuis les métadonnées ou utiliser maintenant
-    DateTime? parseCreatedAt;
+    DateTime parseCreatedAt;
     if (authUser.createdAt != null) {
-      parseCreatedAt = authUser.createdAt;
+      try {
+        parseCreatedAt = DateTime.parse(authUser.createdAt!);
+      } catch (e) {
+        parseCreatedAt = now;
+      }
     } else if (metadata['created_at'] != null) {
       try {
         parseCreatedAt = DateTime.parse(metadata['created_at'].toString());
@@ -128,6 +127,17 @@ class SupabaseAuthService {
       }
     } else {
       parseCreatedAt = now;
+    }
+    
+    DateTime parseUpdatedAt;
+    if (authUser.updatedAt != null) {
+      try {
+        parseUpdatedAt = DateTime.parse(authUser.updatedAt!);
+      } catch (e) {
+        parseUpdatedAt = parseCreatedAt;
+      }
+    } else {
+      parseUpdatedAt = parseCreatedAt;
     }
     
     return app_models.User(
@@ -141,14 +151,9 @@ class SupabaseAuthService {
               : null),
       isVerified: authUser.emailConfirmedAt != null,
       createdAt: parseCreatedAt,
-      updatedAt: authUser.updatedAt ?? parseCreatedAt,
+      updatedAt: parseUpdatedAt,
     );
   }
 }
 
-enum AuthState {
-  authenticated,
-  unauthenticated,
-  loading,
-}
 
