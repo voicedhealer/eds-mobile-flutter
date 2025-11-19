@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/filter_bar.dart';
 import '../../establishments/widgets/establishment_card.dart';
+import '../../../data/models/establishment.dart';
 import '../../../core/providers/search_provider.dart';
 import '../../../core/providers/filter_provider.dart';
+import '../../../shared/widgets/empty_state.dart';
+import '../../../shared/widgets/error_state.dart';
 
 class SearchResultsScreen extends ConsumerStatefulWidget {
   final String envie;
@@ -21,6 +24,17 @@ class SearchResultsScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
+  final ScrollController _scrollController = ScrollController();
+  int _currentPage = 1;
+  bool _hasMore = true;
+  List<Establishment> _allEstablishments = [];
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentFilter = ref.watch(filterProvider);
@@ -29,6 +43,8 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
       envie: widget.envie,
       ville: widget.ville,
       filter: filterTypeToString(currentFilter),
+      page: _currentPage,
+      limit: 15,
     );
     
     final resultsAsync = ref.watch(searchResultsProvider(searchParams));
@@ -58,46 +74,53 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
             child: resultsAsync.when(
               data: (establishments) {
                 if (establishments.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Aucun résultat trouvé',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Essayez avec d\'autres critères de recherche',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                  return EmptyState(
+                    icon: Icons.search_off,
+                    title: 'Aucun résultat trouvé',
+                    message: 'Essayez avec d\'autres critères de recherche',
                   );
                 }
+                // Mettre à jour la liste complète et vérifier s'il y a plus de résultats
+                if (_currentPage == 1) {
+                  _allEstablishments = establishments;
+                } else {
+                  _allEstablishments.addAll(establishments);
+                }
+                _hasMore = establishments.length >= searchParams.limit;
+
                 return RefreshIndicator(
                   onRefresh: () async {
+                    _currentPage = 1;
+                    _allEstablishments.clear();
                     ref.invalidate(searchResultsProvider(searchParams));
                   },
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.all(16),
-                    itemCount: establishments.length,
+                    itemCount: _hasMore ? _allEstablishments.length + 1 : _allEstablishments.length,
                     itemBuilder: (context, index) {
+                      if (index == _allEstablishments.length) {
+                        // Bouton "Charger plus"
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _currentPage++;
+                                });
+                              },
+                              child: const Text('Charger plus'),
+                            ),
+                          ),
+                        );
+                      }
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: EstablishmentCard(
-                          establishment: establishments[index],
+                          establishment: _allEstablishments[index],
                           onTap: () {
-                            context.push('/establishment/${establishments[index].slug}');
+                            context.push('/establishment/${_allEstablishments[index].slug}');
                           },
                         ),
                       );
@@ -106,35 +129,11 @@ class _SearchResultsScreenState extends ConsumerState<SearchResultsScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red[300],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Erreur lors du chargement',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      error.toString(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        ref.invalidate(searchResultsProvider(searchParams));
-                      },
-                      child: const Text('Réessayer'),
-                    ),
-                  ],
-                ),
+              error: (error, stack) => ErrorState(
+                message: error.toString(),
+                onRetry: () {
+                  ref.invalidate(searchResultsProvider(searchParams));
+                },
               ),
             ),
           ),

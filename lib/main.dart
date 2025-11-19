@@ -13,7 +13,8 @@ import 'features/profile/screens/profile_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/register_screen.dart';
 import 'features/map/screens/map_screen.dart';
-import 'core/providers/establishment_provider.dart';
+import 'features/events/screens/event_detail_screen.dart';
+import 'core/providers/establishment_provider.dart' as providers;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +77,13 @@ final GoRouter _router = GoRouter(
       },
     ),
     GoRoute(
+      path: '/event/:id',
+      builder: (context, state) {
+        final eventId = state.pathParameters['id']!;
+        return _EventDetailRoute(eventId: eventId);
+      },
+    ),
+    GoRoute(
       path: '/favorites',
       builder: (context, state) => const FavoritesScreen(),
     ),
@@ -113,7 +121,7 @@ class _EstablishmentDetailRoute extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final establishmentAsync = ref.watch(establishmentBySlugProvider(slug));
+    final establishmentAsync = ref.watch(providers.establishmentBySlugProvider(slug));
 
     return establishmentAsync.when(
       data: (establishment) {
@@ -124,6 +132,38 @@ class _EstablishmentDetailRoute extends ConsumerWidget {
           );
         }
         return EstablishmentDetailScreen(establishment: establishment);
+      },
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Chargement...')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stack) => Scaffold(
+        appBar: AppBar(title: const Text('Erreur')),
+        body: Center(child: Text('Erreur: $error')),
+      ),
+    );
+  }
+}
+
+// Widget pour charger l'événement depuis le provider
+class _EventDetailRoute extends ConsumerWidget {
+  final String eventId;
+
+  const _EventDetailRoute({required this.eventId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final eventAsync = ref.watch(providers.eventByIdProvider(eventId));
+
+    return eventAsync.when(
+      data: (event) {
+        if (event == null) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Événement introuvable')),
+            body: const Center(child: Text('Cet événement n\'existe pas')),
+          );
+        }
+        return EventDetailScreen(event: event);
       },
       loading: () => Scaffold(
         appBar: AppBar(title: const Text('Chargement...')),

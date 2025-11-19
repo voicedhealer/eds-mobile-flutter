@@ -28,5 +28,17 @@ class EstablishmentRepository {
         .map((json) => Establishment.fromJson(json))
         .toList();
   }
+
+  Future<Establishment?> getById(String id) async {
+    final response = await _supabase
+        .from('establishments')
+        .select()
+        .eq('id', id)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Establishment.fromJson(response);
+  }
 }
 

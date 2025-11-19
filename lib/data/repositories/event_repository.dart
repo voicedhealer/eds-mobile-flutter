@@ -7,29 +7,31 @@ class EventRepository {
 
   Future<List<Event>> getUpcomingEvents({String? city}) async {
     final now = DateTime.now();
-    var query = _supabase
+    
+    // Si une ville est spécifiée, utiliser une jointure avec filtre
+    if (city != null) {
+      final response = await _supabase
+          .from('events')
+          .select('*, establishments!inner(city)')
+          .eq('establishments.city', city)
+          .gte('start_date', now.toIso8601String())
+          .order('start_date', ascending: true);
+      
+      return (response as List)
+          .map((json) => Event.fromJson(json))
+          .toList();
+    }
+    
+    // Sinon, récupérer tous les événements
+    final response = await _supabase
         .from('events')
-        .select('*, establishments(*)')
+        .select('*, establishments(city)')
         .gte('start_date', now.toIso8601String())
         .order('start_date', ascending: true);
 
-    final response = await query;
-    var events = (response as List)
+    return (response as List)
         .map((json) => Event.fromJson(json))
         .toList();
-
-    // Filtrer par ville côté client si nécessaire
-    if (city != null) {
-      // Note: Cette approche nécessite que l'établissement soit chargé
-      // Pour une meilleure performance, utilisez une fonction Supabase ou RPC
-      events = events.where((event) {
-        // Si vous avez chargé l'établissement dans la réponse JSON
-        // Sinon, vous devrez faire une requête séparée pour chaque établissement
-        return true; // Placeholder - à implémenter selon votre structure de données
-      }).toList();
-    }
-
-    return events;
   }
 
   Future<EngagementStats> getEngagementStats(String eventId) async {
@@ -46,6 +48,17 @@ class EventRepository {
       intrigue: engagements.where((e) => e['type'] == 'intrigue').length,
       pasEnvie: engagements.where((e) => e['type'] == 'pas-envie').length,
     );
+  }
+
+  Future<Event?> getById(String eventId) async {
+    final response = await _supabase
+        .from('events')
+        .select()
+        .eq('id', eventId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Event.fromJson(response);
   }
 
   Future<void> engage({
