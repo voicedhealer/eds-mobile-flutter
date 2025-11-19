@@ -17,12 +17,12 @@ class EnvieSearchBar extends StatefulWidget {
 class _EnvieSearchBarState extends State<EnvieSearchBar>
     with SingleTickerProviderStateMixin {
   final _phrases = [
-    'manger une crêpe au nutella',
+    'goûter un plat indien',
     'boire une bière artisanale',
     'faire un laser game',
     'jouer au bowling',
     'tester la réalité virtuelle',
-    'résoudre un escape game',
+    'faire un escape game',
     'danser toute la nuit',
     'manger un burger',
     'boire un cocktail',
