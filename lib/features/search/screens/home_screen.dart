@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/envie_search_bar.dart';
@@ -64,14 +65,32 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final popularEstablishmentsAsync = ref.watch(popularEstablishmentsProvider);
 
+    // Configurer la status bar pour qu'elle soit transparente avec du texte blanc
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light, // Icônes blanches pour iOS
+        statusBarBrightness: Brightness.dark, // Texte sombre pour Android
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    );
+
     return Scaffold(
-      body: SafeArea(
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Hero Section avec gradient
+              // Hero Section avec gradient qui couvre toute la hauteur
               Container(
-                height: 300,
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top,
+                  bottom: 0,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -87,6 +106,7 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 20),
                     Text(
                       'Envie2Sortir',
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
@@ -138,6 +158,7 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
