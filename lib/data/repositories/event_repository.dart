@@ -14,7 +14,7 @@ class EventRepository {
     if (city != null) {
       final response = await _supabase!
           .from('events')
-          .select('*, establishments!inner(city)')
+          .select('*, establishments!events_establishment_id_fkey!inner(city)')
           .eq('establishments.city', city)
           .gte('start_date', now.toIso8601String())
           .order('start_date', ascending: true);
@@ -27,7 +27,7 @@ class EventRepository {
     // Sinon, récupérer tous les événements
     final response = await _supabase!
         .from('events')
-        .select('*, establishments(city)')
+        .select('*, establishments!events_establishment_id_fkey(city)')
         .gte('start_date', now.toIso8601String())
         .order('start_date', ascending: true);
 

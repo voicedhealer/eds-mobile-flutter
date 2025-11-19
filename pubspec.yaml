@@ -63,12 +63,12 @@ flutter:
     - .env
   
   # Polices personnalisées
-  # Décommentez cette section une fois que vous avez ajouté le fichier de police
-  # fonts:
-  #   - family: LemonTuesday
-  #     fonts:
-  #       - asset: assets/fonts/LemonTuesday-Regular.ttf
-  #       # Ajoutez d'autres variantes si nécessaire :
-  #       # - asset: assets/fonts/LemonTuesday-Bold.ttf
-  #       #   weight: 700
+  fonts:
+    - family: LemonTuesday
+      fonts:
+        - asset: assets/fonts/LemonTuesday-Regular.otf
+          weight: 400
+        # Ajoutez d'autres variantes si nécessaire :
+        # - asset: assets/fonts/LemonTuesday-Bold.otf
+        #   weight: 700
 

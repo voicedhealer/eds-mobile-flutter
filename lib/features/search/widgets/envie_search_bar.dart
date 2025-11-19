@@ -123,23 +123,31 @@ class _EnvieSearchBarState extends State<EnvieSearchBar>
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                _currentPhrase,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-            AnimatedBuilder(
-              animation: _cursorController,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _cursorController.value,
-                  child: Container(
-                    width: 2,
-                    height: 20,
-                    color: const Color(0xFFFF751F),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      _currentPhrase,
+                      style: const TextStyle(fontSize: 16),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                );
-              },
+                  AnimatedBuilder(
+                    animation: _cursorController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _cursorController.value,
+                        child: Container(
+                          width: 2,
+                          height: 20,
+                          margin: const EdgeInsets.only(left: 2),
+                          color: const Color(0xFFFF751F),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
             if (widget.isInteractive) ...[
               const SizedBox(width: 8),
