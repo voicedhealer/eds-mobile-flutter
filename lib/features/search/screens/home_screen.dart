@@ -100,27 +100,43 @@ class HomeScreen extends ConsumerWidget {
                       child: EnvieSearchBar(isInteractive: true),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _QuickActionButton(
-                          icon: Icons.map,
-                          label: 'Carte',
-                          onTap: () => context.push('/map'),
-                        ),
-                        const SizedBox(width: 16),
-                        _QuickActionButton(
-                          icon: Icons.event,
-                          label: 'Événements',
-                          onTap: () => context.push('/events'),
-                        ),
-                        const SizedBox(width: 16),
-                        _QuickActionButton(
-                          icon: Icons.favorite,
-                          label: 'Favoris',
-                          onTap: () => context.push('/favorites'),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          _QuickActionButton(
+                            icon: Icons.map,
+                            label: 'Carte',
+                            onTap: () => context.push('/map'),
+                          ),
+                          _QuickActionButton(
+                            icon: Icons.event,
+                            label: 'Événements',
+                            onTap: () => context.push('/events'),
+                          ),
+                          _QuickActionButton(
+                            icon: Icons.favorite,
+                            label: 'Favoris',
+                            onTap: () => context.push('/favorites'),
+                          ),
+                          _QuickActionButton(
+                            icon: Icons.local_offer,
+                            label: 'Bons plans',
+                            onTap: () {
+                              // TODO: Implémenter la navigation vers les bons plans
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Bons plans - À venir'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -209,24 +225,24 @@ class _QuickActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.white.withOpacity(0.3)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white, size: 24),
+            Icon(icon, color: Colors.white, size: 20),
             const SizedBox(height: 4),
             Text(
               label,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
               ),
             ),
