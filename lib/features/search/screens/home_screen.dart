@@ -171,10 +171,15 @@ class HomeScreen extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Découvrez près de chez vous',
-                          style: Theme.of(context).textTheme.headlineSmall,
+                        Expanded(
+                          child: Text(
+                            'Découvrez près de chez vous',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
+                        const SizedBox(width: 8),
                         TextButton(
                           onPressed: () => context.push('/map'),
                           child: const Text('Voir la carte'),

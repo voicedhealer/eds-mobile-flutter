@@ -2,88 +2,68 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../core/services/supabase_auth_service.dart';
+import '../widgets/favorites_tab.dart';
+import '../widgets/comments_tab.dart';
+import '../widgets/badges_tab.dart';
+import '../widgets/profile_settings_tab.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-    final authService = SupabaseAuthService();
+    final user = ref.watch(currentUserProvider);
+    final isAuthenticated = ref.watch(isAuthenticatedProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
-      body: authState.when(
-        data: (user) {
-          if (user == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Vous n\'êtes pas connecté'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.push('/login');
-                    },
-                    child: const Text('Se connecter'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          final appUser = user;
-          return ListView(
-            padding: const EdgeInsets.all(16),
+    if (!isAuthenticated) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Mon Compte')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: appUser.avatar != null
-                    ? NetworkImage(appUser.avatar!)
-                    : null,
-                child: appUser.avatar == null
-                    ? Text(
-                        appUser.firstName?.substring(0, 1).toUpperCase() ?? 'U',
-                        style: const TextStyle(fontSize: 32),
-                      )
-                    : null,
-              ),
+              const Icon(Icons.person_outline, size: 64, color: Colors.grey),
               const SizedBox(height: 16),
-              Text(
-                appUser.name ?? appUser.email,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
+              const Text(
+                'Vous devez être connecté',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 32),
-              ListTile(
-                leading: const Icon(Icons.email),
-                title: const Text('Email'),
-                subtitle: Text(appUser.email),
-              ),
-              if (appUser.favoriteCity != null)
-                ListTile(
-                  leading: const Icon(Icons.location_city),
-                  title: const Text('Ville favorite'),
-                  subtitle: Text(appUser.favoriteCity!),
-                ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Déconnexion'),
-                onTap: () async {
-                  await authService.signOut();
+              const SizedBox(height: 8),
+              const Text('Connectez-vous pour accéder à votre profil'),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  context.push('/login');
                 },
+                child: const Text('Se connecter'),
               ),
             ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Text('Erreur: $error'),
+          ),
+        ),
+      );
+    }
+
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Bonjour ${user?.firstName ?? 'Utilisateur'} !'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.favorite), text: 'Favoris'),
+              Tab(icon: Icon(Icons.comment), text: 'Avis'),
+              Tab(icon: Icon(Icons.emoji_events), text: 'Badges'),
+              Tab(icon: Icon(Icons.settings), text: 'Profil'),
+            ],
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            FavoritesTab(),
+            CommentsTab(),
+            BadgesTab(),
+            ProfileSettingsTab(),
+          ],
         ),
       ),
     );

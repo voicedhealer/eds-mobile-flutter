@@ -32,24 +32,41 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic date) {
+      if (date == null) return null;
+      if (date is DateTime) return date;
+      if (date is String) {
+        try {
+          return DateTime.parse(date);
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+
+    final now = DateTime.now();
+    final createdAtValue = parseDate(json['created_at'] ?? json['createdAt']) ?? now;
+    final updatedAtValue = parseDate(json['updated_at'] ?? json['updatedAt']) ?? now;
+
     return User(
-      id: json['id'],
-      email: json['email'],
-      firstName: json['first_name'],
-      lastName: json['last_name'],
+      id: json['id'] ?? json['user_id'] ?? '',
+      email: json['email'] ?? '',
+      firstName: json['first_name'] ?? json['firstName'],
+      lastName: json['last_name'] ?? json['lastName'],
       name: json['name'],
       phone: json['phone'],
-      avatar: json['avatar'],
-      isVerified: json['is_verified'] ?? false,
-      favoriteCity: json['favorite_city'],
+      avatar: json['avatar'] ?? json['avatarUrl'],
+      isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
+      favoriteCity: json['favorite_city'] ?? json['favoriteCity'],
       role: UserRole.values.firstWhere(
-        (e) => e.name == json['role'],
+        (e) => e.name == (json['role'] ?? 'user'),
         orElse: () => UserRole.user,
       ),
-      karmaPoints: json['karma_points'] ?? 0,
-      gamificationBadges: json['gamification_badges'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      karmaPoints: json['karma_points'] ?? json['karmaPoints'] ?? 0,
+      gamificationBadges: json['gamification_badges'] ?? json['gamificationBadges'],
+      createdAt: createdAtValue,
+      updatedAt: updatedAtValue,
     );
   }
 
