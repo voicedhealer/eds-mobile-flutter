@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
@@ -19,18 +21,23 @@ import 'core/providers/establishment_provider.dart' as providers;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Gestion globale des erreurs Flutter
+  // Gestion globale des erreurs Flutter - Empêcher les crashes
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
     print('Flutter Error: ${details.exception}');
-    print('Stack: ${details.stack}');
+    // Ne pas laisser l'app crasher
+  };
+  
+  // Gestion des erreurs non capturées
+  PlatformDispatcher.instance.onError = (error, stack) {
+    print('Uncaught error: $error');
+    return true; // Empêcher le crash
   };
   
   // Charger les variables d'environnement (si le fichier existe)
   try {
     await dotenv.load(fileName: '.env');
   } catch (e) {
-    // Le fichier .env n'existe pas, utiliser des valeurs par défaut
     print('Warning: .env file not found. Using default values.');
   }
   
@@ -39,7 +46,6 @@ void main() async {
     await initSupabase();
   } catch (e) {
     print('Error initializing Supabase: $e');
-    // Continuer même si Supabase échoue
   }
   
   runApp(

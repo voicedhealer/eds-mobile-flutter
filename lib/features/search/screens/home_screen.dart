@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,22 +14,31 @@ final popularEstablishmentsProvider = FutureProvider<List<Establishment>>((ref) 
     // Récupérer la ville de l'utilisateur ou utiliser une ville par défaut
     final geolocationService = GeolocationService();
     String? city;
+    
+    // Timeout pour éviter que la géolocalisation bloque
     try {
-      city = await geolocationService.getCurrentCity();
+      city = await geolocationService.getCurrentCity()
+          .timeout(const Duration(seconds: 5), onTimeout: () => null);
+      print('📍 Ville détectée: $city');
     } catch (e) {
-      print('Error getting city: $e');
-      // Continuer sans ville si la géolocalisation échoue
+      print('⚠️ Erreur géolocalisation: $e');
     }
     
-    if (city != null) {
+    if (city != null && city.isNotEmpty) {
       try {
-        return await repository.getByCity(city);
+        final establishments = await repository.getByCity(city)
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+          print('⏱️ Timeout lors de la récupération des établissements');
+          return [];
+        });
+        return establishments;
       } catch (e) {
-        print('Error fetching establishments: $e');
+        print('❌ Erreur lors de la récupération: $e');
         return [];
       }
+    } else {
+      print('ℹ️ Aucune ville détectée, retour d\'une liste vide');
     }
-    // Si pas de localisation, retourner une liste vide
     return [];
   } catch (e) {
     print('Error in popularEstablishmentsProvider: $e');

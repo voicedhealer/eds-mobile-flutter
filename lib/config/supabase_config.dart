@@ -25,8 +25,10 @@ Future<void> initSupabase() async {
       ),
     );
     _isInitialized = true;
+    print('✅ Supabase initialisé avec succès');
+    print('   URL: $supabaseUrl');
   } catch (e) {
-    print('Error initializing Supabase: $e');
+    print('❌ Erreur lors de l\'initialisation de Supabase: $e');
     _isInitialized = false;
   }
 }
