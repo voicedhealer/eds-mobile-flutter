@@ -1,11 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/establishment.dart';
+import '../../config/supabase_config.dart';
 
 class EstablishmentRepository {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient? get _supabase => supabase;
 
   Future<Establishment?> getBySlug(String slug) async {
-    final response = await _supabase
+    if (_supabase == null) return null;
+    final response = await _supabase!
         .from('establishments')
         .select()
         .eq('slug', slug)
@@ -17,7 +19,8 @@ class EstablishmentRepository {
   }
 
   Future<List<Establishment>> getByCity(String city) async {
-    final response = await _supabase
+    if (_supabase == null) return [];
+    final response = await _supabase!
         .from('establishments')
         .select()
         .eq('city', city)
@@ -30,7 +33,8 @@ class EstablishmentRepository {
   }
 
   Future<Establishment?> getById(String id) async {
-    final response = await _supabase
+    if (_supabase == null) return null;
+    final response = await _supabase!
         .from('establishments')
         .select()
         .eq('id', id)

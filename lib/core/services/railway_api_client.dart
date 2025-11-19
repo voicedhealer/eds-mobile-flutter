@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../config/supabase_config.dart';
 
 class RailwayApiClient {
   final Dio _dio = Dio(BaseOptions(
-    baseUrl: dotenv.env['RAILWAY_API_URL']!,
+    baseUrl: dotenv.env['RAILWAY_API_URL'] ?? '',
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
     headers: {'Content-Type': 'application/json'},
@@ -13,9 +14,12 @@ class RailwayApiClient {
   RailwayApiClient() {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final session = Supabase.instance.client.auth.currentSession;
-        if (session != null) {
-          options.headers['Authorization'] = 'Bearer ${session.accessToken}';
+        final client = supabase;
+        if (client != null) {
+          final session = client.auth.currentSession;
+          if (session != null) {
+            options.headers['Authorization'] = 'Bearer ${session.accessToken}';
+          }
         }
         return handler.next(options);
       },

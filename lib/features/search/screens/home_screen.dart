@@ -8,15 +8,32 @@ import '../../../data/repositories/establishment_repository.dart';
 import '../../../data/models/establishment.dart';
 
 final popularEstablishmentsProvider = FutureProvider<List<Establishment>>((ref) async {
-  final repository = EstablishmentRepository();
-  // Récupérer la ville de l'utilisateur ou utiliser une ville par défaut
-  final geolocationService = GeolocationService();
-  final city = await geolocationService.getCurrentCity();
-  if (city != null) {
-    return repository.getByCity(city);
+  try {
+    final repository = EstablishmentRepository();
+    // Récupérer la ville de l'utilisateur ou utiliser une ville par défaut
+    final geolocationService = GeolocationService();
+    String? city;
+    try {
+      city = await geolocationService.getCurrentCity();
+    } catch (e) {
+      print('Error getting city: $e');
+      // Continuer sans ville si la géolocalisation échoue
+    }
+    
+    if (city != null) {
+      try {
+        return await repository.getByCity(city);
+      } catch (e) {
+        print('Error fetching establishments: $e');
+        return [];
+      }
+    }
+    // Si pas de localisation, retourner une liste vide
+    return [];
+  } catch (e) {
+    print('Error in popularEstablishmentsProvider: $e');
+    return [];
   }
-  // Si pas de localisation, retourner une liste vide ou une recherche par défaut
-  return [];
 });
 
 class HomeScreen extends ConsumerWidget {
