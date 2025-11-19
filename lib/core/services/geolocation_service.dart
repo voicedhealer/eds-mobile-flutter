@@ -41,5 +41,28 @@ class GeolocationService {
     if (position == null) return null;
     return await getCityFromPosition(position);
   }
+
+  Future<Position?> getPositionFromCity(String cityName) async {
+    try {
+      final locations = await locationFromAddress(cityName);
+      if (locations.isNotEmpty) {
+        return Position(
+          latitude: locations.first.latitude,
+          longitude: locations.first.longitude,
+          timestamp: DateTime.now(),
+          accuracy: 0,
+          altitude: 0,
+          altitudeAccuracy: 0,
+          heading: 0,
+          headingAccuracy: 0,
+          speed: 0,
+          speedAccuracy: 0,
+        );
+      }
+    } catch (e) {
+      print('Erreur lors de la recherche de la ville: $e');
+    }
+    return null;
+  }
 }
 

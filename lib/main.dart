@@ -78,10 +78,13 @@ final GoRouter _router = GoRouter(
       path: '/search',
       builder: (context, state) {
         final envie = state.uri.queryParameters['envie'] ?? '';
-        final ville = state.uri.queryParameters['ville'];
+        final ville = state.uri.queryParameters['ville'] ?? '';
+        final radiusStr = state.uri.queryParameters['radius'];
+        final radius = radiusStr != null ? int.tryParse(radiusStr) ?? 10 : 10;
         return SearchResultsScreen(
           envie: envie,
           ville: ville,
+          radiusKm: radius,
         );
       },
     ),

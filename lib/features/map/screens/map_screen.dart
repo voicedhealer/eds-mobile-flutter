@@ -49,10 +49,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     List<Establishment> establishments = [];
 
-    if (widget.envie != null) {
+    if (widget.envie != null && widget.ville != null && widget.ville!.isNotEmpty) {
       final searchParams = SearchParams(
         envie: widget.envie!,
-        ville: widget.ville,
+        ville: widget.ville!,
         filter: 'popular',
       );
       final resultsAsync = ref.watch(searchResultsProvider(searchParams));

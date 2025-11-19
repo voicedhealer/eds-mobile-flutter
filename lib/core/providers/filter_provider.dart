@@ -13,7 +13,7 @@ final filterProvider = StateNotifierProvider<FilterNotifier, FilterType>((ref) {
   return FilterNotifier();
 });
 
-String filterTypeToString(FilterType filter) {
+String filterTypeToString(FilterType? filter) {
   switch (filter) {
     case FilterType.popular:
       return 'popular';
@@ -27,6 +27,8 @@ String filterTypeToString(FilterType filter) {
       return 'newest';
     case FilterType.rating:
       return 'rating';
+    case null:
+      return 'popular';
   }
 }
 

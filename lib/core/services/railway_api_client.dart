@@ -45,7 +45,8 @@ class RailwayApiClient {
 
   Future<List<Map<String, dynamic>>> searchEstablishments({
     required String envie,
-    String? ville,
+    required String ville, // required
+    int radiusKm = 10, // Périmètre adaptatif
     String filter = 'popular',
     int page = 1,
     int limit = 15,
@@ -57,10 +58,11 @@ class RailwayApiClient {
     }
     
     try {
-      print('🔍 Recherche Railway API: envie=$envie, ville=$ville');
+      print('🔍 Recherche Railway API: envie=$envie, ville=$ville, rayon=${radiusKm}km');
       final response = await _dio.get('/api/recherche/filtered', queryParameters: {
         'envie': envie,
-        if (ville != null) 'ville': ville,
+        'ville': ville,
+        'rayon': radiusKm, // Paramètre rayon
         'filter': filter,
         'page': page,
         'limit': limit,

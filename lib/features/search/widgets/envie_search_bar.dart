@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import 'radius_selector.dart';
+import '../../../config/constants.dart';
 
 class EnvieSearchBar extends StatefulWidget {
   final bool isInteractive;
@@ -157,58 +159,157 @@ class _SearchDialog extends StatefulWidget {
 
 class _SearchDialogState extends State<_SearchDialog> {
   final _searchController = TextEditingController();
-  String? _selectedCity;
+  final _cityController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  int _selectedRadius = 10; // Valeur par défaut, sera adaptée selon la ville
 
   @override
   void dispose() {
     _searchController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
   void _performSearch(BuildContext context) {
+    if (!_formKey.currentState!.validate()) return;
+    
     final envie = _searchController.text.trim();
-    if (envie.isEmpty) return;
+    final ville = _cityController.text.trim();
+    
+    if (envie.isEmpty || ville.isEmpty) return;
     
     context.pop();
-    context.push('/search?envie=${Uri.encodeComponent(envie)}${_selectedCity != null ? '&ville=${Uri.encodeComponent(_selectedCity!)}' : ''}');
+    context.push('/search?envie=${Uri.encodeComponent(envie)}&ville=${Uri.encodeComponent(ville)}&radius=${_selectedRadius}');
+  }
+
+  void _updateRadius(int radius) {
+    setState(() {
+      _selectedRadius = radius;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Déterminer le rayon par défaut selon la ville
+    final city = _cityController.text.trim();
+    final defaultRadius = RadiusSelector.largeCities.any((largeCity) =>
+            city.toLowerCase().contains(largeCity.toLowerCase()) ||
+            largeCity.toLowerCase().contains(city.toLowerCase()))
+        ? 1
+        : 10;
+    
+    if (_selectedRadius == 10 && defaultRadius == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _selectedRadius = 1;
+        });
+      });
+    }
+
     return AlertDialog(
       title: const Text('Que recherchez-vous ?'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _searchController,
-            decoration: const InputDecoration(
-              labelText: 'Envie de...',
-              hintText: 'manger une pizza, boire un cocktail...',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
-            onSubmitted: (_) => _performSearch(context),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  labelText: 'Envie de...',
+                  hintText: 'manger une pizza, boire un cocktail...',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.brandOrange, width: 2),
+                  ),
+                ),
+                autofocus: true,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Veuillez saisir votre envie';
+                  }
+                  return null;
+                },
+                onFieldSubmitted: (_) => _performSearch(context),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _cityController,
+                decoration: InputDecoration(
+                  labelText: 'Ville *',
+                  hintText: 'Paris, Lyon, Beaune...',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.brandOrange, width: 2),
+                  ),
+                  helperText: 'Champ obligatoire',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'La ville est obligatoire';
+                  }
+                  return null;
+                },
+                onChanged: (value) {
+                  setState(() {
+                    // Adapter le rayon selon la ville
+                    final isLargeCity = RadiusSelector.largeCities.any((largeCity) =>
+                        value.toLowerCase().contains(largeCity.toLowerCase()) ||
+                        largeCity.toLowerCase().contains(value.toLowerCase()));
+                    _selectedRadius = isLargeCity ? 1 : 10;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
+              RadiusSelector(
+                selectedCity: _cityController.text.trim().isNotEmpty
+                    ? _cityController.text.trim()
+                    : null,
+                selectedRadius: _selectedRadius,
+                onRadiusChanged: _updateRadius,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          TextField(
-            decoration: const InputDecoration(
-              labelText: 'Ville (optionnel)',
-              hintText: 'Paris, Lyon...',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) => _selectedCity = value.isEmpty ? null : value,
-          ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () => context.pop(),
-          child: const Text('Annuler'),
+          child: Text(
+            'Annuler',
+            style: TextStyle(color: AppColors.brandOrange),
+          ),
         ),
-        ElevatedButton(
-          onPressed: () => _performSearch(context),
-          child: const Text('Rechercher'),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.brandOrange, AppColors.brandPink],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ElevatedButton(
+            onPressed: () => _performSearch(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Trouve-moi ça !',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ),
       ],
     );

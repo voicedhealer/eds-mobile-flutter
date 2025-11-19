@@ -6,7 +6,8 @@ class SearchRepository {
 
   Future<List<Establishment>> search({
     required String envie,
-    String? ville,
+    required String ville, // required
+    int radiusKm = 10, // Périmètre adaptatif
     String filter = 'popular',
     int page = 1,
     int limit = 15,
@@ -14,6 +15,7 @@ class SearchRepository {
     final results = await _apiClient.searchEstablishments(
       envie: envie,
       ville: ville,
+      radiusKm: radiusKm,
       filter: filter,
       page: page,
       limit: limit,
