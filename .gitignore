@@ -52,3 +52,7 @@ app.*.map.json
 # Prompt
 prompt_auth.md
 prompt_cursor_bar_search.md
+prompt_localisation.md
+PROMPT-CURSOR-Section-Bons-Plans-du-Jour.md
+PROMPT-CURSOR-Section-Événements-à-Venir.md
+PROMPT-CURSOR-Section-Nos-Meilleurs-Endroits.md

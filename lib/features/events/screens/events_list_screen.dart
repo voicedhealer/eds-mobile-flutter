@@ -6,6 +6,7 @@ import '../../../data/models/event.dart';
 import '../../../data/repositories/event_repository.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../../core/services/geolocation_service.dart';
+import '../../../core/providers/location_provider.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/error_state.dart';
 
@@ -35,16 +36,15 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
   void initState() {
     super.initState();
     _selectedCity = widget.city;
-    _loadUserCity();
   }
 
-  Future<void> _loadUserCity() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Utiliser la ville de la localisation si aucune ville n'est fournie
     if (_selectedCity == null) {
-      final geolocationService = GeolocationService();
-      final city = await geolocationService.getCurrentCity();
-      if (city != null && mounted) {
-        setState(() => _selectedCity = city);
-      }
+      final locationState = ref.read(locationProvider);
+      _selectedCity = locationState.currentCity?.name;
     }
   }
 

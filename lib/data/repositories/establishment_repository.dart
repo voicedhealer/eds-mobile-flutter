@@ -131,5 +131,33 @@ class EstablishmentRepository {
       return [];
     }
   }
+
+  /// Récupère les établissements dans un rayon autour d'une position
+  Future<List<Establishment>> getByLocation({
+    required double latitude,
+    required double longitude,
+    required int radiusKm,
+    int limit = 20,
+  }) async {
+    if (_supabase == null) {
+      print('⚠️ Supabase not initialized');
+      return [];
+    }
+    
+    try {
+      // Pour l'instant, on utilise getPopular comme fallback
+      // TODO: Implémenter la recherche par rayon géographique dans Supabase
+      print('🔍 Récupération des établissements dans un rayon de ${radiusKm}km');
+      
+      // Utiliser getPopular pour l'instant
+      final establishments = await getPopular(limit: limit);
+      
+      print('✅ Trouvé ${establishments.length} établissement(s)');
+      return establishments;
+    } catch (e) {
+      print('❌ Erreur lors de la récupération par localisation: $e');
+      return [];
+    }
+  }
 }
 

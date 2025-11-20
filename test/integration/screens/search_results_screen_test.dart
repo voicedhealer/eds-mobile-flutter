@@ -11,6 +11,7 @@ void main() {
           child: MaterialApp(
             home: SearchResultsScreen(
               envie: 'restaurant',
+              ville: 'Paris',
             ),
           ),
         ),
@@ -25,6 +26,7 @@ void main() {
           child: MaterialApp(
             home: SearchResultsScreen(
               envie: 'restaurant',
+              ville: 'Paris',
             ),
           ),
         ),
@@ -42,6 +44,7 @@ void main() {
           child: MaterialApp(
             home: SearchResultsScreen(
               envie: '',
+              ville: 'Paris',
             ),
           ),
         ),

@@ -88,9 +88,18 @@ class Establishment {
   static Map<String, dynamic>? _parseJsonField(dynamic field) {
     if (field == null) return null;
     if (field is Map<String, dynamic>) return field;
+    if (field is List) {
+      // Si c'est une List, on ne peut pas la convertir en Map, retourner null
+      return null;
+    }
     if (field is String) {
       try {
-        return jsonDecode(field) as Map<String, dynamic>?;
+        final decoded = jsonDecode(field);
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+        // Si le résultat n'est pas un Map, retourner null
+        return null;
       } catch (e) {
         print('⚠️ Erreur lors du parsing JSON: $e');
         return null;

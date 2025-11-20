@@ -79,5 +79,27 @@ class EventRepository {
       'type': type.name,
     });
   }
+
+  Future<Event?> getNextEventForEstablishment(String establishmentId) async {
+    if (_supabase == null) return null;
+    final now = DateTime.now();
+    
+    try {
+      final response = await _supabase!
+          .from('events')
+          .select()
+          .eq('establishment_id', establishmentId)
+          .gte('start_date', now.toIso8601String())
+          .order('start_date', ascending: true)
+          .limit(1)
+          .maybeSingle();
+      
+      if (response == null) return null;
+      return Event.fromJson(response);
+    } catch (e) {
+      print('Erreur lors de la récupération de l\'événement: $e');
+      return null;
+    }
+  }
 }
 
