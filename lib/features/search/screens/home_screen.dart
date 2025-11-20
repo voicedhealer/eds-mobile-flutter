@@ -9,6 +9,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/location_provider.dart';
 import '../../home/widgets/best_places_section.dart';
 import '../../events/widgets/upcoming_events_section.dart';
+import '../../deals/widgets/daily_deals_section.dart';
 
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _showLocationModal = false;
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _dealsSectionKey = GlobalKey();
   
   void _handleLocationTap() {
     setState(() {
@@ -214,12 +216,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             icon: Icons.local_offer,
                             label: 'Bons plans',
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Bons plans - À venir'),
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
+                              // Scroll vers la section "Bons plans du jour"
+                              final dealsContext = _dealsSectionKey.currentContext;
+                              if (dealsContext != null) {
+                                Scrollable.ensureVisible(
+                                  dealsContext,
+                                  duration: const Duration(milliseconds: 500),
+                                  curve: Curves.easeInOut,
+                                );
+                              }
                             },
                           ),
                           _QuickActionButton(
@@ -248,6 +253,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const BestPlacesSection(),
                       // Section "Événements à venir"
                       const UpcomingEventsSection(),
+                      // Section "Bons plans du jour"
+                      DailyDealsSection(key: _dealsSectionKey),
                     ],
                   ),
                 ),

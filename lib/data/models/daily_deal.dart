@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'establishment.dart';
 
 class DailyDeal {
   final String id;
@@ -12,14 +13,15 @@ class DailyDeal {
   final String? pdfUrl;
   final DateTime dateDebut;
   final DateTime dateFin;
-  final String? heureDebut;
-  final String? heureFin;
+  final String? heureDebut; // Format "HH:mm"
+  final String? heureFin; // Format "HH:mm"
   final bool isActive;
   final String? promoUrl;
   final bool isRecurring;
-  final String? recurrenceType;
-  final List<int>? recurrenceDays;
+  final String? recurrenceType; // 'weekly' | 'monthly'
+  final List<int>? recurrenceDays; // [1,2,3,4,5] (1=lundi, 7=dimanche)
   final DateTime? recurrenceEndDate;
+  final Establishment establishment;
 
   DailyDeal({
     required this.id,
@@ -41,6 +43,7 @@ class DailyDeal {
     this.recurrenceType,
     this.recurrenceDays,
     this.recurrenceEndDate,
+    required this.establishment,
   });
 
   factory DailyDeal.fromJson(Map<String, dynamic> json) {
@@ -66,12 +69,27 @@ class DailyDeal {
           ? List<int>.from(json['recurrence_days'] is String
               ? jsonDecode(json['recurrence_days'])
               : json['recurrence_days'])
-          : json['recurrenceDays'],
+          : json['recurrenceDays'] != null
+              ? (json['recurrenceDays'] is String
+                  ? List<int>.from(jsonDecode(json['recurrenceDays']))
+                  : List<int>.from(json['recurrenceDays']))
+              : null,
       recurrenceEndDate: json['recurrence_end_date'] != null
           ? DateTime.parse(json['recurrence_end_date'])
           : json['recurrenceEndDate'] != null
               ? DateTime.parse(json['recurrenceEndDate'])
               : null,
+      establishment: json['establishment'] != null && json['establishment'] is Map
+          ? Establishment.fromJson(json['establishment'] as Map<String, dynamic>)
+          : Establishment.fromJson({
+              'id': json['establishment_id'] ?? json['establishmentId'] ?? '',
+              'name': 'Établissement',
+              'slug': '',
+              'address': '',
+              'owner_id': '',
+              'created_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toIso8601String(),
+            }),
     );
   }
 }
